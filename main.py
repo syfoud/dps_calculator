@@ -1,7 +1,7 @@
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QIcon, QPixmap, QCursor, QPalette, QBrush
-from PyQt6.QtWidgets import QApplication, QListWidgetItem
+from PyQt6.QtWidgets import QApplication, QListWidgetItem, QFileDialog
 import sys
 import os
 
@@ -26,8 +26,12 @@ class MyApp(QtWidgets.QMainWindow):
         self.shovel_active = False
         # 连接槽函数
         self.shovel.clicked.connect(self.toggle_shovel_cursor)
+        self.map_change.clicked.connect(self.set_background_image)
 
-
+    def set_background_image(self):
+        options = QFileDialog.Option(0)
+        file_path, _ = QFileDialog.getOpenFileName(self, "选择图片", "", "Images (*.png *.xpm *.jpg *.bmp *.gif)", options=options)
+        self.set_table_background(file_path, self.battle_ground, (368, 85, 670, 600), 1)
     def set_table_background(self, image_path, table_widget, crop_rect, scale_factor):
 
         pixmap = QPixmap(image_path)
