@@ -36,7 +36,7 @@
           <item>
            <widget class="QLabel" name="openbag">
             <property name="text">
-             <string>打开卡片背包</string>
+             <string>打开卡组</string>
             </property>
            </widget>
           </item>
