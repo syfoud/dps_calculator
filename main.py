@@ -18,20 +18,33 @@ class MyApp(QtWidgets.QMainWindow):
 
         self.set_image('picture/ui/bag.png', self.Bag)
         self.set_image('picture/ui/shovel.png', self.shovel)
+        self.set_image('picture/ui/飞行路障鼠【特殊-路障】.png', self.obstacle)
+        self.set_image('picture/ui/章鱼小丸子.png', self.people)
 
         # 设置 QTableWidget 的背景图片
         self.set_table_background('picture/map/美味岛/色拉岛（陆）.jpg', self.battle_ground, (368, 85, 670, 600),22)
 
         # 初始化鼠标样式状态
-        self.shovel_active = False
+        self.shovel_active = "cursor"
         # 连接槽函数
         self.shovel.clicked.connect(self.toggle_shovel_cursor)
+        self.obstacle.clicked.connect(self.toggle_obstacle_cursor)
+        self.people.clicked.connect(self.toggle_people_cursor)
         self.map_change.clicked.connect(self.set_background_image)
 
+        self.close_map.clicked.connect(self.clear_table_background)
+
     def set_background_image(self):
+        default_dir = os.path.join(os.path.dirname(__file__), 'picture', 'map')
         options = QFileDialog.Option(0)
-        file_path, _ = QFileDialog.getOpenFileName(self, "选择图片", "", "Images (*.png *.xpm *.jpg *.bmp *.gif)", options=options)
-        self.set_table_background(file_path, self.battle_ground, (368, 85, 670, 600), 1)
+        file_path, _ = QFileDialog.getOpenFileName(self, "选择图片", default_dir, "Images (*.png *.xpm *.jpg *.bmp *.gif)", options=options)
+        if file_path :
+            self.set_table_background(file_path, self.battle_ground, (368, 85, 670, 600), 1)
+    def clear_table_background(self):
+        palette = self.battle_ground.palette()
+        palette.setBrush(QPalette.ColorRole.Window, QBrush())
+        self.battle_ground.setPalette(palette)
+        self.battle_ground.setAutoFillBackground(False)  # 关闭自动填充背景
     def set_table_background(self, image_path, table_widget, crop_rect, scale_factor):
 
         pixmap = QPixmap(image_path)
@@ -52,14 +65,34 @@ class MyApp(QtWidgets.QMainWindow):
 
 
     def toggle_shovel_cursor(self):
-        if self.shovel_active:
-            self.unsetCursor()
+        if self.shovel_active!="shovel":
+            pixmap = QPixmap('picture/ui/shovel.png')
+            cursor = QCursor(pixmap)
+            self.setCursor(cursor)
+            self.shovel_active = "shovel"
         else:
-            shovel_pixmap = QPixmap('picture/ui/shovel.png')
-            shovel_cursor = QCursor(shovel_pixmap)
-            self.setCursor(shovel_cursor)
+            self.unsetCursor()
+            self.shovel_active = "cursor"
+    def toggle_obstacle_cursor(self):
+        if self.shovel_active!="obstacle":
+            pixmap = QPixmap('picture/ui/飞行路障鼠【特殊-路障】.png')
+            cursor = QCursor(pixmap)
+            self.setCursor(cursor)
+            self.shovel_active = "obstacle"
+        else:
+            self.unsetCursor()
+            self.shovel_active = "cursor"
+    def toggle_people_cursor(self):
+        if self.shovel_active!="people":
+            pixmap = QPixmap('picture/ui/章鱼小丸子.png')
+            cursor = QCursor(pixmap)
+            self.setCursor(cursor)
+            self.shovel_active = "people"
+        else:
+            self.unsetCursor()
+            self.shovel_active = "cursor"
 
-        self.shovel_active = not self.shovel_active
+
 
     def set_image(self, path, name):
         icon = QIcon(path)

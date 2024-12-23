@@ -10,6 +10,18 @@
     <height>771</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>1028</width>
+    <height>771</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>1028</width>
+    <height>771</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>dps计算器</string>
   </property>
@@ -166,6 +178,9 @@
           <property name="autoScroll">
            <bool>true</bool>
           </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
           <property name="showDropIndicator" stdset="0">
            <bool>true</bool>
           </property>
@@ -184,6 +199,9 @@
           <property name="cornerButtonEnabled">
            <bool>true</bool>
           </property>
+          <attribute name="horizontalHeaderVisible">
+           <bool>true</bool>
+          </attribute>
           <attribute name="horizontalHeaderCascadingSectionResizes">
            <bool>false</bool>
           </attribute>
@@ -295,24 +313,63 @@
         </item>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <widget class="QPushButton" name="pushButton">
+          <item alignment="Qt::AlignHCenter">
+           <widget class="QLabel" name="label_3">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>添加障碍</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_3">
+           <widget class="QPushButton" name="obstacle">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignHCenter">
+           <widget class="QLabel" name="label_4">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>添加人物</string>
             </property>
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="people">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="map_change">
             <property name="text">
-             <string>关闭视图</string>
+             <string>打开地图</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="close_map">
+            <property name="text">
+             <string>关闭地图</string>
             </property>
            </widget>
           </item>
