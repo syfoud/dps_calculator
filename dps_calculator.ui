@@ -60,6 +60,12 @@
         </item>
         <item>
          <widget class="QListWidget" name="cardlist">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="verticalScrollMode">
+           <enum>QAbstractItemView::ScrollPerPixel</enum>
+          </property>
           <property name="movement">
            <enum>QListView::Static</enum>
           </property>
