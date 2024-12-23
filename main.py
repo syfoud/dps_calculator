@@ -101,6 +101,7 @@ class MyApp(QtWidgets.QMainWindow):
         for obstacle in obstacles:
             row, col = map(int, obstacle.split('-'))
             self.add_image_to_cell('picture/ui/飞行路障鼠【特殊-路障】.png', col - 1, row - 1)
+            self.obstacle_positions.add((col - 1, row - 1))
 
     def set_exit_and_minimized_btn_icon(self):
         """
