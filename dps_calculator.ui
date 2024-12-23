@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1028</width>
-    <height>816</height>
+    <height>832</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -222,7 +222,7 @@ border:none</string>
          <item>
           <widget class="QLabel" name="label_2">
            <property name="text">
-            <string>均dps2</string>
+            <string>均dps</string>
            </property>
           </widget>
          </item>
@@ -246,11 +246,14 @@ border:none</string>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="styleSheet">
+          <string notr="true">QTableWidget::item{border:1px solid;}</string>
+         </property>
          <property name="frameShape">
           <enum>QFrame::Box</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Sunken</enum>
+          <enum>QFrame::Plain</enum>
          </property>
          <property name="lineWidth">
           <number>1</number>
@@ -303,6 +306,9 @@ border:none</string>
          <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
           <bool>false</bool>
          </attribute>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>false</bool>
+         </attribute>
          <attribute name="verticalHeaderVisible">
           <bool>true</bool>
          </attribute>
@@ -314,6 +320,12 @@ border:none</string>
          </attribute>
          <attribute name="verticalHeaderDefaultSectionSize">
           <number>83</number>
+         </attribute>
+         <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderStretchLastSection">
+          <bool>false</bool>
          </attribute>
          <row>
           <property name="text">
