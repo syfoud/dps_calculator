@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QApplication, QListWidgetItem, QFileDialog, QLabel, 
 from json_load import load_json_file
 import sys
 import os
+import json
 def create_icon(color, mode):
     """
     绘制图表
@@ -61,21 +62,46 @@ class MyApp(QtWidgets.QMainWindow):
         self.mouse_active = "cursor"
         # 记忆化人物位置
         self.current_people_position = None
+        # 初始化障碍位置集合
+        self.obstacle_positions = set()
         #无边框设计
         self.set_no_border()
         self.set_common_theme()
         # 根据系统样式,设定开关图标
         self.set_exit_and_minimized_btn_icon()
         # 连接槽函数
-        self.shovel.clicked.connect(self.toggle_shovel_cursor)
-        self.obstacle.clicked.connect(self.toggle_obstacle_cursor)
-        self.people.clicked.connect(self.toggle_people_cursor)
+        self.shovel.clicked.connect(lambda: self.toggle_cursor("shovel", 'picture/ui/shovel.png'))
+        self.obstacle.clicked.connect(lambda: self.toggle_cursor("obstacle", 'picture/ui/飞行路障鼠【特殊-路障】.png'))
+        self.people.clicked.connect(lambda: self.toggle_cursor("people", 'picture/ui/章鱼小丸子.png'))
         self.map_change.clicked.connect(self.set_background_image)
         self.Bag.clicked.connect(self.load_cards)
 
         self.close_map.clicked.connect(self.clear_table_background)
 
         self.battle_ground.cellClicked.connect(self.on_cell_clicked)
+
+    def clear_obstacles(self):
+        # 使用集合中的位置清空障碍图像
+        for row, col in self.obstacle_positions:
+            self.battle_ground.setCellWidget(row, col, None)
+        # 清空集合
+        self.obstacle_positions.clear()
+    def load_obstacles(self, map_name):
+        # 清空所有障碍图像
+        self.clear_obstacles()
+        # 读取障碍信息
+
+        with open('data/obstacle/obstacle_info.json', 'r', encoding='utf-8') as file:
+            obstacle_data = json.load(file)
+
+        # 获取指定地图的障碍位置
+        obstacles = obstacle_data.get(map_name, [])
+
+        # 在 battle_ground 上绘制障碍
+        for obstacle in obstacles:
+            row, col = map(int, obstacle.split('-'))
+            self.add_image_to_cell('picture/ui/飞行路障鼠【特殊-路障】.png', col - 1, row - 1)
+
     def set_exit_and_minimized_btn_icon(self):
         """
         设置退出按钮和最小化按钮样式，需已获取主题
@@ -152,10 +178,14 @@ class MyApp(QtWidgets.QMainWindow):
         if self.mouse_active == "shovel":
             # 清除单元格中的图片
             self.battle_ground.setCellWidget(row, column, None)
+            # 从集合中移除该位置
+            if (row, column) in self.obstacle_positions:
+                self.obstacle_positions.remove((row, column))
         else:
-            image_path = ''
             if self.mouse_active == "obstacle":
                 image_path = 'picture/ui/飞行路障鼠【特殊-路障】.png'
+                # 将位置添加到集合中
+                self.obstacle_positions.add((row, column))
             elif self.mouse_active == "people":
                 self.remove_previous_image(self.current_people_position)
                 self.current_people_position = (row, column)
@@ -193,6 +223,8 @@ class MyApp(QtWidgets.QMainWindow):
         file_path, _ = QFileDialog.getOpenFileName(self, "选择图片", default_dir, "Images (*.png *.xpm *.jpg *.bmp *.gif)", options=options)
         if file_path :
             self.set_table_background(file_path, self.battle_ground, (368, 85, 670, 600), 1.05)
+            map_name = os.path.splitext(os.path.basename(file_path))[0]
+            self.load_obstacles(map_name)
     def clear_table_background(self):
         palette = self.battle_ground.palette()
         palette.setBrush(QPalette.ColorRole.Window, QBrush())
@@ -216,31 +248,12 @@ class MyApp(QtWidgets.QMainWindow):
         table_widget.setPalette(palette)
         table_widget.setAutoFillBackground(True)
 
-
-    def toggle_shovel_cursor(self):
-        if self.mouse_active!= "shovel":
-            pixmap = QPixmap('picture/ui/shovel.png')
+    def toggle_cursor(self, mode, image_path):
+        if self.mouse_active != mode:
+            pixmap = QPixmap(image_path)
             cursor = QCursor(pixmap)
             self.setCursor(cursor)
-            self.mouse_active = "shovel"
-        else:
-            self.unsetCursor()
-            self.mouse_active = "cursor"
-    def toggle_obstacle_cursor(self):
-        if self.mouse_active!= "obstacle":
-            pixmap = QPixmap('picture/ui/飞行路障鼠【特殊-路障】.png')
-            cursor = QCursor(pixmap)
-            self.setCursor(cursor)
-            self.mouse_active = "obstacle"
-        else:
-            self.unsetCursor()
-            self.mouse_active = "cursor"
-    def toggle_people_cursor(self):
-        if self.mouse_active!= "people":
-            pixmap = QPixmap('picture/ui/章鱼小丸子.png')
-            cursor = QCursor(pixmap)
-            self.setCursor(cursor)
-            self.mouse_active = "people"
+            self.mouse_active = mode
         else:
             self.unsetCursor()
             self.mouse_active = "cursor"
