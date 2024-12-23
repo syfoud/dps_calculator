@@ -1,20 +1,53 @@
-from PyQt6 import QtWidgets, uic
+from PyQt6 import QtWidgets, uic, QtCore, QtGui
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QIcon, QPixmap, QCursor, QPalette, QBrush
-from PyQt6.QtWidgets import QApplication, QListWidgetItem, QFileDialog, QLabel, QSizePolicy
+from PyQt6.QtWidgets import QApplication, QListWidgetItem, QFileDialog, QLabel, QSizePolicy, QWidget, QVBoxLayout
+from json_load import load_json_file
 import sys
 import os
+def create_icon(color, mode):
+    """
+    绘制图表
+    :param color: Q color
+    :param mode: "-" "x" "<-" "->"
+    :return:
+    """
+    pixmap = QtGui.QPixmap(16, 16)
+    pixmap.fill(QtCore.Qt.GlobalColor.transparent)
+
+    painter = QtGui.QPainter(pixmap)
+    painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+
+    # 绘制图标
+    painter.setPen(QtGui.QPen(color, 2))
+    match mode:
+        case "x":
+            painter.drawLine(3, 3, 13, 13)
+            painter.drawLine(3, 13, 13, 3)
+        case "-":
+            painter.drawLine(3, 8, 13, 8)
+        case "<-":
+            painter.drawLine(2, 8, 14, 8)  # 主线
+            painter.drawLine(2, 8, 6, 4)  # 左上角
+            painter.drawLine(2, 8, 6, 12)  # 左下角
+        case "->":
+            painter.drawLine(2, 8, 14, 8)  # 主线
+            painter.drawLine(14, 8, 10, 4)  # 右上角
+            painter.drawLine(14, 8, 10, 12)  # 右下角
+        case _:
+            pass
+
+    painter.end()
+
+    return QtGui.QIcon(pixmap)
 
 class MyApp(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi('dps_calculator.ui', self)
+        self.cards={}
 
-        # 添加一些项
-        for i in range(1, 22):
-            item = QListWidgetItem(f"card {i}")
-            self.cardlist.addItem(item)
-            item.setSizeHint(QSize(50, 100))
+
 
         self.set_image('picture/ui/bag.png', self.Bag)
         self.set_image('picture/ui/shovel.png', self.shovel)
@@ -22,22 +55,99 @@ class MyApp(QtWidgets.QMainWindow):
         self.set_image('picture/ui/章鱼小丸子.png', self.people)
 
         # 设置 QTableWidget 的背景图片
-        self.set_table_background('picture/map/美味岛/色拉岛（陆）.jpg', self.battle_ground, (368, 85, 670, 600),22)
+        # self.set_table_background('picture/map/美味岛/色拉岛（陆）.jpg', self.battle_ground, (368, 85, 670, 600),22)
 
         # 初始化鼠标样式状态
         self.mouse_active = "cursor"
         # 记忆化人物位置
         self.current_people_position = None
+        #无边框设计
+        self.set_no_border()
+        self.set_common_theme()
+        # 根据系统样式,设定开关图标
+        self.set_exit_and_minimized_btn_icon()
         # 连接槽函数
         self.shovel.clicked.connect(self.toggle_shovel_cursor)
         self.obstacle.clicked.connect(self.toggle_obstacle_cursor)
         self.people.clicked.connect(self.toggle_people_cursor)
         self.map_change.clicked.connect(self.set_background_image)
+        self.Bag.clicked.connect(self.load_cards)
 
         self.close_map.clicked.connect(self.clear_table_background)
 
         self.battle_ground.cellClicked.connect(self.on_cell_clicked)
+    def set_exit_and_minimized_btn_icon(self):
+        """
+        设置退出按钮和最小化按钮样式，需已获取主题
+        :return:
+        """
+        # 根据系统样式,设定开关图标
+        color = QtGui.QColor(15, 15, 15)
+        self.Button_Exit.setIcon(create_icon(color=color, mode="x"))
+        self.Button_Minimized.setIcon(create_icon(color=color, mode="-"))
+    def set_common_theme(self):
 
+        style_sheet = self.styleSheet()
+        # 增加边框
+        style_sheet += "#MainFrame{border-radius: 8px; border: 1px solid #3c3d3e;} "
+        style_sheet = self.styleSheet()
+        style_sheet += "#MainFrame{background-color: #FFFFFF;}"
+
+        self.setStyleSheet(style_sheet)
+
+    def set_no_border(self):
+        # 设置无边框窗口
+        self.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
+
+        # 设背景为透明
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+    def update_cardlist(self, cards):
+        # 清空当前的cardlist
+        self.cardlist.clear()
+        default_dir = os.path.join(os.path.dirname(__file__), 'picture', 'card')
+
+
+        # 提取id和name并添加到cardlist
+        for card in cards.get('card', {}).get('default', []):
+            # 创建一个QWidget作为QListWidgetItem的容器
+            image_path = os.path.join(default_dir, f"{card['name']}.png")
+            if not os.path.exists(image_path):
+                image_path = os.path.join(default_dir, "未知.png")
+            widget = QWidget()
+            layout = QVBoxLayout()
+            # 设置布局的边距为0，减少间距
+            layout.setContentsMargins(2, 0, 2, 0)
+            # 创建一个QLabel来显示卡片名字
+            label_name = QLabel(card['name'])
+            label_name.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中
+            layout.addWidget(label_name)
+            # 创建一个QLabel来显示图片
+            label_image = QLabel()
+            pixmap = QPixmap(image_path)
+            label_image.setPixmap(pixmap)
+            label_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(label_image)
+
+
+
+            # 设置布局到QWidget
+            widget.setLayout(layout)
+
+            # 创建一个QListWidgetItem并设置其大小
+            item = QListWidgetItem(self.cardlist)
+            item.setSizeHint(widget.sizeHint())
+
+            # 将QWidget添加到QListWidget
+            self.cardlist.addItem(item)
+            self.cardlist.setItemWidget(item, widget)
+            # item = QListWidgetItem(f"{card['name']}")
+            # self.cardlist.addItem(item)
+            # item.setSizeHint(QSize(50, 100))
+    def load_cards(self):
+        self.cards = load_json_file(self)
+        if self.cards:
+            self.update_cardlist(self.cards)
+        # print("JSON数据已成功加载:", self.cards)
     def on_cell_clicked(self, row, column):
         if self.mouse_active == "shovel":
             # 清除单元格中的图片
@@ -51,7 +161,6 @@ class MyApp(QtWidgets.QMainWindow):
                 self.current_people_position = (row, column)
                 image_path = 'picture/ui/章鱼小丸子.png'
             else:
-                print("Unknown mouse_active state")
                 return
 
             self.add_image_to_cell(image_path, row, column)
@@ -83,7 +192,7 @@ class MyApp(QtWidgets.QMainWindow):
         options = QFileDialog.Option(0)
         file_path, _ = QFileDialog.getOpenFileName(self, "选择图片", default_dir, "Images (*.png *.xpm *.jpg *.bmp *.gif)", options=options)
         if file_path :
-            self.set_table_background(file_path, self.battle_ground, (368, 85, 670, 600), 1)
+            self.set_table_background(file_path, self.battle_ground, (368, 85, 670, 600), 1.05)
     def clear_table_background(self):
         palette = self.battle_ground.palette()
         palette.setBrush(QPalette.ColorRole.Window, QBrush())
@@ -135,6 +244,28 @@ class MyApp(QtWidgets.QMainWindow):
         else:
             self.unsetCursor()
             self.mouse_active = "cursor"
+    def mouseMoveEvent(self, a0: QtGui.QMouseEvent):
+        if self._startPos:
+            self._endPos = a0.pos() - self._startPos
+            # 移动窗口
+            self.move(self.pos() + self._endPos)
+
+    # 鼠标按下事件
+    def mousePressEvent(self, a0: QtGui.QMouseEvent):
+        # 根据鼠标按下时的位置判断是否在QFrame范围内
+        if self.childAt(a0.pos().x(), a0.pos().y()).objectName() == "FrameTitle":
+            # 判断鼠标按下的是左键
+            if a0.button() == QtCore.Qt.MouseButton.LeftButton:
+                self._isTracking = True
+                # 记录初始位置
+                self._startPos = QtCore.QPoint(a0.pos().x(), a0.pos().y())
+
+    # 鼠标松开事件
+    def mouseReleaseEvent(self, a0: QtGui.QMouseEvent):
+        if a0.button() == QtCore.Qt.MouseButton.LeftButton:
+            self._isTracking = False
+            self._startPos = None
+            self._endPos = None
 
 
 
