@@ -4,6 +4,8 @@ from PyQt6 import QtWidgets, uic, QtCore, QtGui
 from PyQt6.QtCore import QSize, Qt, QUrl
 from PyQt6.QtGui import QIcon, QPixmap, QCursor, QPalette, QBrush, QDesktopServices, QFontDatabase
 from PyQt6.QtWidgets import QApplication, QListWidgetItem, QFileDialog, QLabel, QSizePolicy, QWidget, QVBoxLayout
+
+from Spreadsheet import add_alias_to_row
 from json_load import load_json_file
 import sys
 import os
@@ -51,6 +53,7 @@ class MyApp(QtWidgets.QMainWindow):
         self.cards={}
         self.edit_card=''
         self.cache_path = os.path.join(os.path.dirname(__file__), 'cache')
+        self.path = os.path.join(os.path.dirname(__file__))
 
 
 
@@ -85,6 +88,7 @@ class MyApp(QtWidgets.QMainWindow):
 
         # 连接卡组点击事件
         self.cardlist.itemClicked.connect(self.on_card_clicked)
+        self.cardlist.itemDoubleClicked.connect(self.on_card_double_clicked)  # 新增双击事件连接
 
         self.close_map.clicked.connect(self.clear_table_background)
 
@@ -92,11 +96,56 @@ class MyApp(QtWidgets.QMainWindow):
 
         self.Title_Logo.clicked.connect(self.open_github_page)
 
+    def on_card_double_clicked(self, item):
+        # 获取 QWidget 容器
+        widget = self.cardlist.itemWidget(item)
+
+
+        # 找到显示名字的 QLabel
+        label_name = widget.findChild(QLabel, "card_name")
+        # 找到显示图片的 QLabel
+        label_image = widget.findChild(QLabel, "card_image")
+
+
+        card_name = label_name.text()
+
+        # 打开文件资源管理器选择图片
+        options = QFileDialog.Option(0)
+        file_path, _ = QFileDialog.getOpenFileName(self, "选择图片",
+                                                   os.path.join(os.path.dirname(__file__), 'picture', 'card'),
+                                                   "Images (*.png *.xpm *.jpg *.bmp *.gif)",
+                                                   options=options)
+        if file_path:
+            # 提取所选图片的文件名（不带路径）
+            original_name_with_ext = os.path.basename(file_path)
+            # 去除后缀，只保留基本名称
+            original_name, _ = os.path.splitext(original_name_with_ext)
+            # 构建卡的图片路径
+            image_path = os.path.join(self.path, 'picture', 'card_battle',f"{original_name}.png")
+            cache_path=os.path.join(self.path, 'cache','cardphoto', f"{card_name}.png")
+            if os.path.exists(image_path):
+
+                # 复制所选图片到缓存目录
+                shutil.copy2(image_path, cache_path)
+
+            # 更新显示图片的 QLabel
+            pixmap = QPixmap(file_path)
+            label_image.setPixmap(pixmap)
+            label_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            label_image.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+            # 记录别名到Excel
+            add_alias_to_row(original_name, card_name)
+        else:
+            print("未选择图片")
+
+
+
     def on_card_clicked(self, item):
         # 获取 QWidget 容器
         widget = self.cardlist.itemWidget(item)
         # 从 QWidget 中找到 QLabel 并获取卡的名称
-        label_name = widget.findChild(QLabel, "card")
+        label_name = widget.findChild(QLabel, "card_name")
         if label_name:
             card_name = label_name.text()
             # 构建卡的图片路径
@@ -190,11 +239,12 @@ class MyApp(QtWidgets.QMainWindow):
             layout.setContentsMargins(2, 0, 2, 0)
             # 创建一个QLabel来显示卡片名字
             label_name = QLabel(card['name'])
-            label_name.setObjectName("card")
+            label_name.setObjectName("card_name")
             label_name.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中
             layout.addWidget(label_name)
             # 创建一个QLabel来显示图片
             label_image = QLabel()
+            label_image.setObjectName("card_image")
             pixmap = QPixmap(image_path)
             label_image.setPixmap(pixmap)
             label_image.setAlignment(Qt.AlignmentFlag.AlignCenter)
