@@ -2,7 +2,7 @@ import shutil
 
 from PyQt6 import QtWidgets, uic, QtCore, QtGui
 from PyQt6.QtCore import QSize, Qt, QUrl
-from PyQt6.QtGui import QIcon, QPixmap, QCursor, QPalette, QBrush, QDesktopServices
+from PyQt6.QtGui import QIcon, QPixmap, QCursor, QPalette, QBrush, QDesktopServices, QFontDatabase
 from PyQt6.QtWidgets import QApplication, QListWidgetItem, QFileDialog, QLabel, QSizePolicy, QWidget, QVBoxLayout
 from json_load import load_json_file
 import sys
@@ -49,7 +49,10 @@ class MyApp(QtWidgets.QMainWindow):
         super().__init__()
         uic.loadUi('dps_calculator.ui', self)
         self.cards={}
+        self.edit_card=''
         self.cache_path = os.path.join(os.path.dirname(__file__), 'cache')
+
+
 
 
 
@@ -80,11 +83,40 @@ class MyApp(QtWidgets.QMainWindow):
         self.map_change.clicked.connect(self.set_background_image)
         self.Bag.clicked.connect(self.load_cards)
 
+        # 连接卡组点击事件
+        self.cardlist.itemClicked.connect(self.on_card_clicked)
+
         self.close_map.clicked.connect(self.clear_table_background)
 
         self.battle_ground.cellClicked.connect(self.on_cell_clicked)
 
         self.Title_Logo.clicked.connect(self.open_github_page)
+
+    def on_card_clicked(self, item):
+        # 获取 QWidget 容器
+        widget = self.cardlist.itemWidget(item)
+        # 从 QWidget 中找到 QLabel 并获取卡的名称
+        label_name = widget.findChild(QLabel, "card")
+        if label_name:
+            card_name = label_name.text()
+            # 构建卡的图片路径
+            image_path = os.path.join(self.cache_path, 'cardphoto', f"{card_name}.png")
+
+            # 检查图片是否存在
+            if os.path.exists(image_path):
+                # 设置鼠标图标
+                pixmap = QPixmap(image_path)
+                cursor = QCursor(pixmap)
+                self.setCursor(cursor)
+                self.mouse_active = "card"
+                self.edit_card=card_name
+            else:
+                print(f"图片未找到: {image_path}")
+                # 恢复默认鼠标图标
+                self.unsetCursor()
+                self.mouse_active = "cursor"
+        else:
+            print("未找到卡的名称标签")
 
     def open_github_page(self):
         url = QUrl("https://github.com/syfoud/dps_calculator")  # 替换为你的项目地址
@@ -156,6 +188,7 @@ class MyApp(QtWidgets.QMainWindow):
             layout.setContentsMargins(2, 0, 2, 0)
             # 创建一个QLabel来显示卡片名字
             label_name = QLabel(card['name'])
+            label_name.setObjectName("card")
             label_name.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中
             layout.addWidget(label_name)
             # 创建一个QLabel来显示图片
@@ -229,6 +262,16 @@ class MyApp(QtWidgets.QMainWindow):
                 self.remove_previous_image(self.current_people_position)
                 self.current_people_position = (row, column)
                 image_path = 'picture/ui/章鱼小丸子.png'
+            elif self.mouse_active == "card":
+                # 获取卡片图片路径
+                card_name = self.edit_card
+                image_path = os.path.join(self.cache_path, 'cardphoto', f"{card_name}.png")
+
+                # 检查图片是否存在
+                if os.path.exists(image_path):
+                    self.add_image_to_cell(image_path, row, column)
+                else:
+                    print(f"图片未找到: {image_path}")
             else:
                 return
 
@@ -337,6 +380,16 @@ class MyApp(QtWidgets.QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    # 加载自定义字体
+    font_path = os.path.join(os.path.dirname(__file__), 'resources', 'font', 'SmileySans-Oblique.ttf')
+    font_id = QFontDatabase.addApplicationFont(font_path)
+    if font_id == -1:
+        raise ("Failed to load font.")
+    else:
+        font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+        font = QtGui.QFont(font_family, 10)
+        app.setFont(font)
     myapp = MyApp()
+    myapp.font=font
     myapp.show()
     sys.exit(app.exec())

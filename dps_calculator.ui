@@ -26,7 +26,9 @@
    <string>dps计算器</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">#MainFrame{border-radius: 8px; border: 1px solid #3c3d3e;} </string>
+   <string notr="true">#MainFrame{border-radius: 8px; border: 1px solid #3c3d3e;
+} 
+</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QWidget" name="MainFrame" native="true">
