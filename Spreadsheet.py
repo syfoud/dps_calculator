@@ -43,6 +43,6 @@ def add_alias_to_row(name_to_find, alias, file_path=os.path.join(os.path.dirname
         print(f"未找到名字 '{name_to_find}' 的记录。")
 
 # 示例调用
-name_to_find = '盖亚圣神'
-alias = 'Gaea Saint Goddess'
+name_to_find = '海盐粉'
+alias = '海盐'
 add_alias_to_row(name_to_find, alias)
