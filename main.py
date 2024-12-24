@@ -1,6 +1,8 @@
+import shutil
+
 from PyQt6 import QtWidgets, uic, QtCore, QtGui
-from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QIcon, QPixmap, QCursor, QPalette, QBrush
+from PyQt6.QtCore import QSize, Qt, QUrl
+from PyQt6.QtGui import QIcon, QPixmap, QCursor, QPalette, QBrush, QDesktopServices
 from PyQt6.QtWidgets import QApplication, QListWidgetItem, QFileDialog, QLabel, QSizePolicy, QWidget, QVBoxLayout
 from json_load import load_json_file
 import sys
@@ -47,10 +49,12 @@ class MyApp(QtWidgets.QMainWindow):
         super().__init__()
         uic.loadUi('dps_calculator.ui', self)
         self.cards={}
+        self.cache_path = os.path.join(os.path.dirname(__file__), 'cache')
 
 
 
         self.set_image('picture/ui/bag.png', self.Bag)
+        self.set_image('picture/ui/logo.png', self.Title_Logo)
         self.set_image('picture/ui/shovel.png', self.shovel)
         self.set_image('picture/ui/飞行路障鼠【特殊-路障】.png', self.obstacle)
         self.set_image('picture/ui/章鱼小丸子.png', self.people)
@@ -79,6 +83,12 @@ class MyApp(QtWidgets.QMainWindow):
         self.close_map.clicked.connect(self.clear_table_background)
 
         self.battle_ground.cellClicked.connect(self.on_cell_clicked)
+
+        self.Title_Logo.clicked.connect(self.open_github_page)
+
+    def open_github_page(self):
+        url = QUrl("https://github.com/syfoud/dps_calculator")  # 替换为你的项目地址
+        QDesktopServices.openUrl(url)
 
     def clear_obstacles(self):
         # 使用集合中的位置清空障碍图像
@@ -174,7 +184,35 @@ class MyApp(QtWidgets.QMainWindow):
         self.cards = load_json_file(self)
         if self.cards:
             self.update_cardlist(self.cards)
+            self.clear_cardphoto_cache()
+            self.copy_card_images_to_cache(self.cards)
         # print("JSON数据已成功加载:", self.cards)
+    def clear_cardphoto_cache(self):
+        # 清空 cardphoto 文件夹
+        for filename in os.listdir(os.path.join(self.cache_path, 'cardphoto')):
+            file_path = os.path.join(os.path.join(self.cache_path, 'cardphoto'), filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print(f'Failed to delete {file_path}. Reason: {e}')
+
+    def copy_card_images_to_cache(self, cards):
+        default_dir = os.path.join(os.path.dirname(__file__), 'picture', 'card_battle')
+        for card in cards.get('card', {}).get('default', []):
+            image_name = f"{card['name']}.png"
+            source_path = os.path.join(default_dir, image_name)
+            cache_path=os.path.join(self.cache_path, 'cardphoto')
+            destination_path = os.path.join(cache_path, image_name)
+
+            if os.path.exists(source_path):
+                shutil.copy2(source_path, destination_path)
+            else:
+                pass
+                # print(f"Source image not found: {source_path}")
+
     def on_cell_clicked(self, row, column):
         if self.mouse_active == "shovel":
             # 清除单元格中的图片

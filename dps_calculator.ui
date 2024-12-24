@@ -58,16 +58,16 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QLabel" name="Title_Logo">
+         <widget class="QPushButton" name="Title_Logo">
           <property name="text">
-           <string>logo</string>
+           <string/>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QLabel" name="Title_Text">
           <property name="text">
-           <string>dps计算器</string>
+           <string>dps计算器-项目免费开源，点击海星跳转项目地址</string>
           </property>
          </widget>
         </item>

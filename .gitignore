@@ -3,7 +3,8 @@ __pycache__/
 
 # 忽略pycharm文件
 .idea/
-
+#忽略缓存
+cache/
 # 忽略所有 .pyc 文件 即python缓存
 *.pyc
 
