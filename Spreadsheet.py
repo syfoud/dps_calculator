@@ -26,11 +26,12 @@ def add_alias_to_row(name_to_find, alias, file_path=os.path.join(os.path.dirname
         # 获取找到的第一行的索引
         index = result.index[0]
 
-        # 检查最后一列是否有数据，如果有则添加别名，否则直接添加
-        if pd.notna(df.iloc[index, -1]):
-            df.iloc[index, -1] = f"{df.iloc[index, -1]}, {alias}"
-        else:
-            df.iloc[index, -1] = alias
+        # 遍历该行的每一列，找到第一个为空的列
+        for col in df.columns:
+            if pd.isna(df.at[index, col]) or df.at[index, col].strip() == '':
+                df.at[index, col] = alias
+                break
+
 
         # 获取工作表名称
         xls = pd.ExcelFile(file_path)
@@ -41,5 +42,6 @@ def add_alias_to_row(name_to_find, alias, file_path=os.path.join(os.path.dirname
         print(f"别名 '{alias}' 已成功添加到名字 '{name_to_find}' 的记录中。")
     else:
         print(f"未找到名字 '{name_to_find}' 的记录。")
+
 
 
