@@ -5,7 +5,7 @@ from PyQt6.QtCore import QSize, Qt, QUrl
 from PyQt6.QtGui import QIcon, QPixmap, QCursor, QPalette, QBrush, QDesktopServices, QFontDatabase
 from PyQt6.QtWidgets import QApplication, QListWidgetItem, QFileDialog, QLabel, QSizePolicy, QWidget, QVBoxLayout
 
-from Spreadsheet import add_alias_to_row
+from Spreadsheet import add_alias_to_row, find_name_in_excel
 from json_load import load_json_file
 import sys
 import os
@@ -232,7 +232,17 @@ class MyApp(QtWidgets.QMainWindow):
             # 创建一个QWidget作为QListWidgetItem的容器
             image_path = os.path.join(default_dir, f"{card['name']}.png")
             if not os.path.exists(image_path):
-                image_path = os.path.join(default_dir, "未知.png")
+                # 在Excel中查找别名
+                aliases = find_name_in_excel(card['name'])
+                if aliases:
+                    # 优先尝试加载第三个名字对应的图片
+                    for i in [3,2,1,0]:  # 从最高转到未转
+                        if not aliases[i]=='nan':
+                            image_path = os.path.join(default_dir, f"{aliases[i]}.png")
+                            if os.path.exists(image_path):
+                                break
+                if not os.path.exists(image_path):
+                    image_path = os.path.join(default_dir, "未知.png")
             widget = QWidget()
             layout = QVBoxLayout()
             # 设置布局的边距为0，减少间距
@@ -290,6 +300,16 @@ class MyApp(QtWidgets.QMainWindow):
         for card in cards.get('card', {}).get('default', []):
             image_name = f"{card['name']}.png"
             source_path = os.path.join(default_dir, image_name)
+            # 如果默认图片不存在，则查找别名
+            if not os.path.exists(source_path):
+                aliases = find_name_in_excel(card['name'])
+                if aliases:
+                    for i in [3,2,1,0]:
+                        if not aliases[i]=='nan':
+                            alias_image_path = os.path.join(default_dir, f"{aliases[i]}.png")
+                            if os.path.exists(alias_image_path):
+                                source_path = alias_image_path
+                                break
             destination_path = os.path.join(cache_path, image_name)
 
             if os.path.exists(source_path):
