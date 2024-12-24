@@ -391,7 +391,7 @@ class MyApp(QtWidgets.QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     # 加载自定义字体
-    font_path = os.path.join(os.path.dirname(__file__), 'resources', 'font', 'SmileySans-Oblique.ttf')
+    font_path = os.path.join(os.path.dirname(__file__), 'resources', 'font', 'font.ttf')
     font_id = QFontDatabase.addApplicationFont(font_path)
     if font_id == -1:
         raise ("Failed to load font.")
