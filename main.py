@@ -101,6 +101,7 @@ class MyApp(QtWidgets.QMainWindow):
             card_name = label_name.text()
             # 构建卡的图片路径
             image_path = os.path.join(self.cache_path, 'cardphoto', f"{card_name}.png")
+            unknown_path = os.path.join(self.cache_path, 'cardphoto', "未知.png")
 
             # 检查图片是否存在
             if os.path.exists(image_path):
@@ -111,10 +112,11 @@ class MyApp(QtWidgets.QMainWindow):
                 self.mouse_active = "card"
                 self.edit_card=card_name
             else:
-                print(f"图片未找到: {image_path}")
-                # 恢复默认鼠标图标
-                self.unsetCursor()
-                self.mouse_active = "cursor"
+                pixmap = QPixmap(unknown_path)
+                cursor = QCursor(pixmap)
+                self.setCursor(cursor)
+                self.mouse_active = "card"
+                self.edit_card=card_name
         else:
             print("未找到卡的名称标签")
 
@@ -234,17 +236,17 @@ class MyApp(QtWidgets.QMainWindow):
 
     def copy_card_images_to_cache(self, cards):
         default_dir = os.path.join(os.path.dirname(__file__), 'picture', 'card_battle')
+        cache_path = os.path.join(self.cache_path, 'cardphoto')
         for card in cards.get('card', {}).get('default', []):
             image_name = f"{card['name']}.png"
             source_path = os.path.join(default_dir, image_name)
-            cache_path=os.path.join(self.cache_path, 'cardphoto')
             destination_path = os.path.join(cache_path, image_name)
 
             if os.path.exists(source_path):
                 shutil.copy2(source_path, destination_path)
             else:
                 pass
-                # print(f"Source image not found: {source_path}")
+        shutil.copy2(os.path.join(default_dir, "未知.png"), os.path.join(cache_path, "未知.png"))
 
     def on_cell_clicked(self, row, column):
         if self.mouse_active == "shovel":
@@ -258,10 +260,12 @@ class MyApp(QtWidgets.QMainWindow):
                 image_path = 'picture/ui/飞行路障鼠【特殊-路障】.png'
                 # 将位置添加到集合中
                 self.obstacle_positions.add((row, column))
+                self.add_image_to_cell(image_path, row, column)
             elif self.mouse_active == "people":
                 self.remove_previous_image(self.current_people_position)
                 self.current_people_position = (row, column)
                 image_path = 'picture/ui/章鱼小丸子.png'
+                self.add_image_to_cell(image_path, row, column)
             elif self.mouse_active == "card":
                 # 获取卡片图片路径
                 card_name = self.edit_card
@@ -271,12 +275,18 @@ class MyApp(QtWidgets.QMainWindow):
                 if os.path.exists(image_path):
                     self.add_image_to_cell(image_path, row, column)
                 else:
-                    print(f"图片未找到: {image_path}")
+                    self.add_text_to_cell(card_name, row, column)
             else:
                 return
 
-            self.add_image_to_cell(image_path, row, column)
 
+
+    def add_text_to_cell(self, text, row, column):
+        label = QLabel(text)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        # 将 QLabel 添加到单元格中
+        self.battle_ground.setCellWidget(row, column, label)
     def remove_previous_image(self, position):
         if position is not None:
             row, column = position
